@@ -1244,13 +1244,16 @@
                 const utterance = new SpeechSynthesisUtterance(spanishWord);
                 utterance.lang = 'es-ES';
                 const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-                utterance.rate = isMobile ? 0.9 : 1.0;
-                utterance.pitch = isMobile ? 1.05 : 1.0;
+                utterance.rate = isMobile ? 0.85 : 1.0; // slower on mobile
+                utterance.pitch = isMobile ? 1.0 : 1.0; // neutral pitch on mobile
                 utterance.volume = 0.9; // High volume for clarity
                 
                 // Use the pre-selected high-quality voice
                 if (selectedVoice) {
                     utterance.voice = selectedVoice;
+                    if (selectedVoice.lang) {
+                        utterance.lang = selectedVoice.lang;
+                    }
                     console.log('Speaking with:', selectedVoice.name);
                 } else {
                     // Fallback: try to find any Spanish voice
