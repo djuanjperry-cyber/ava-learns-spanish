@@ -1244,7 +1244,7 @@
                 const utterance = new SpeechSynthesisUtterance(spanishWord);
                 utterance.lang = 'es-ES';
                 const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-                utterance.rate = isMobile ? 1.05 : 1.0;
+                utterance.rate = isMobile ? 0.9 : 1.0;
                 utterance.pitch = isMobile ? 1.05 : 1.0;
                 utterance.volume = 0.9; // High volume for clarity
                 
