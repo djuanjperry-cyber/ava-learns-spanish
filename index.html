@@ -358,6 +358,70 @@
             color: #4ecdc4;
         }
 
+        .percentage-display {
+            background: #2c2c2c;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: center;
+            border: 2px solid #4ecdc4;
+        }
+
+        .percentage-display .percentage {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+
+        .confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ff6b6b;
+            animation: confetti-fall 3s linear infinite;
+        }
+
+        .confetti-piece:nth-child(2n) {
+            background: #4ecdc4;
+            animation-delay: 0.1s;
+        }
+
+        .confetti-piece:nth-child(3n) {
+            background: #45b7d1;
+            animation-delay: 0.2s;
+        }
+
+        .confetti-piece:nth-child(4n) {
+            background: #96ceb4;
+            animation-delay: 0.3s;
+        }
+
+        .confetti-piece:nth-child(5n) {
+            background: #feca57;
+            animation-delay: 0.4s;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
         /* Mobile Responsive */
         @media (max-width: 600px) {
             .container {
@@ -464,6 +528,10 @@
             <div class="score">Score: <span id="score">0</span>%</div>
         </div>
 
+        <div class="percentage-display">
+            <div class="percentage">Correct: <span id="percentage">0</span>%</div>
+        </div>
+
         <div id="loadingMessage" class="loading">
             Loading Spanish flashcards...
         </div>
@@ -515,6 +583,7 @@
         let flashcards = [];
         let currentCardIndex = 0;
         let correctAnswers = 0;
+        let totalAnswered = 0;
         let selectedAnswer = null;
         let answerRevealed = false;
 
@@ -922,12 +991,17 @@
             // Check if correct
             const isCorrect = optionIndex === card.correctAnswer;
             
+            // Update counters
+            totalAnswered++;
+            if (isCorrect) {
+                correctAnswers++;
+            }
+            
             // Show feedback
             const feedbackElement = document.getElementById('answerFeedback');
             if (isCorrect) {
                 feedbackElement.textContent = '¡Correcto! 🎉';
                 feedbackElement.className = 'answer-feedback correct-feedback';
-                correctAnswers++;
                 playCorrectSound();
             } else {
                 feedbackElement.textContent = 'Incorrecto. The correct answer is: ' + card.options[card.correctAnswer];
@@ -948,6 +1022,12 @@
             answerRevealed = true;
             document.getElementById('nextBtn').style.display = 'inline-block';
             updateStats();
+            
+            // Check for confetti celebration at 92%
+            const percentage = Math.round((correctAnswers / totalAnswered) * 100);
+            if (percentage >= 92 && totalAnswered >= 5) { // At least 5 questions answered
+                showConfetti();
+            }
         }
 
         // Voice management
@@ -1278,7 +1358,76 @@
             const score = flashcards.length > 0 ? Math.round((correctAnswers / flashcards.length) * 100) : 0;
             document.getElementById('score').textContent = score;
             
+            // Update percentage display
+            const percentage = totalAnswered > 0 ? Math.round((correctAnswers / totalAnswered) * 100) : 0;
+            document.getElementById('percentage').textContent = percentage;
+            
             document.getElementById('prevBtn').disabled = currentCardIndex === 0;
+        }
+
+        function showConfetti() {
+            // Remove existing confetti
+            const existingConfetti = document.querySelector('.confetti');
+            if (existingConfetti) {
+                existingConfetti.remove();
+            }
+            
+            // Create confetti container
+            const confettiContainer = document.createElement('div');
+            confettiContainer.className = 'confetti';
+            
+            // Create confetti pieces
+            for (let i = 0; i < 50; i++) {
+                const confettiPiece = document.createElement('div');
+                confettiPiece.className = 'confetti-piece';
+                
+                // Random position and animation delay
+                confettiPiece.style.left = Math.random() * 100 + '%';
+                confettiPiece.style.animationDelay = Math.random() * 3 + 's';
+                confettiPiece.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                
+                confettiContainer.appendChild(confettiPiece);
+            }
+            
+            // Add to page
+            document.body.appendChild(confettiContainer);
+            
+            // Remove after animation
+            setTimeout(() => {
+                if (confettiContainer.parentNode) {
+                    confettiContainer.remove();
+                }
+            }, 5000);
+            
+            // Play celebration sound
+            playCelebrationSound();
+        }
+
+        function playCelebrationSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Play a celebratory chord progression
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                
+                notes.forEach((frequency, index) => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime + index * 0.1);
+                    
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime + index * 0.1);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + index * 0.1 + 0.5);
+                    
+                    oscillator.start(audioContext.currentTime + index * 0.1);
+                    oscillator.stop(audioContext.currentTime + index * 0.1 + 0.5);
+                });
+            } catch (error) {
+                console.log('Audio not supported');
+            }
         }
 
         function showCompletion() {
@@ -1296,7 +1445,9 @@
             shuffleArray(flashcards);
             currentCardIndex = 0;
             correctAnswers = 0;
+            totalAnswered = 0;
             loadCard();
+            updateStats();
             
             const shuffleBtn = document.getElementById('shuffleBtn');
             const originalText = shuffleBtn.textContent;
