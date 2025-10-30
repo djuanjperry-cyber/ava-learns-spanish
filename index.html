@@ -957,7 +957,7 @@
         function loadVoices() {
             availableVoices = speechSynthesis.getVoices();
             
-            // Filter and sort Spanish voices by quality
+            // Filter and sort Spanish voices by quality, prioritizing female/kid-friendly voices
             const spanishVoices = availableVoices.filter(voice => 
                 voice.lang.startsWith('es') || 
                 voice.name.includes('Spanish') ||
@@ -967,13 +967,48 @@
                 voice.name.includes('Latin')
             );
             
-            // Sort by quality (Google/Microsoft voices first, then female voices)
+            // Sort by kid-friendly female voices first, then quality
             spanishVoices.sort((a, b) => {
+                // Prioritize female voices that sound more like kids
+                const aKidFriendly = (
+                    a.name.includes('Female') || 
+                    a.name.includes('Woman') || 
+                    a.name.includes('Mujer') ||
+                    a.name.includes('Girl') ||
+                    a.name.includes('Child') ||
+                    a.name.includes('Young') ||
+                    a.name.includes('Sofia') ||
+                    a.name.includes('Isabella') ||
+                    a.name.includes('Maria') ||
+                    a.name.includes('Carmen') ||
+                    a.name.includes('Ana') ||
+                    a.name.includes('Laura')
+                ) ? 3 : 0;
+                
+                const bKidFriendly = (
+                    b.name.includes('Female') || 
+                    b.name.includes('Woman') || 
+                    b.name.includes('Mujer') ||
+                    b.name.includes('Girl') ||
+                    b.name.includes('Child') ||
+                    b.name.includes('Young') ||
+                    b.name.includes('Sofia') ||
+                    b.name.includes('Isabella') ||
+                    b.name.includes('Maria') ||
+                    b.name.includes('Carmen') ||
+                    b.name.includes('Ana') ||
+                    b.name.includes('Laura')
+                ) ? 3 : 0;
+                
+                if (aKidFriendly !== bKidFriendly) return bKidFriendly - aKidFriendly;
+                
+                // Then prioritize high-quality voices
                 const aQuality = (a.name.includes('Google') || a.name.includes('Microsoft') || a.name.includes('Enhanced') || a.name.includes('Neural')) ? 2 : 0;
                 const bQuality = (b.name.includes('Google') || b.name.includes('Microsoft') || b.name.includes('Enhanced') || b.name.includes('Neural')) ? 2 : 0;
                 
                 if (aQuality !== bQuality) return bQuality - aQuality;
                 
+                // Finally, any female voice
                 const aFemale = (a.name.includes('Female') || a.name.includes('Woman') || a.name.includes('Mujer')) ? 1 : 0;
                 const bFemale = (b.name.includes('Female') || b.name.includes('Woman') || b.name.includes('Mujer')) ? 1 : 0;
                 
@@ -1008,8 +1043,8 @@
                 
                 const utterance = new SpeechSynthesisUtterance(spanishWord);
                 utterance.lang = 'es-ES';
-                utterance.rate = 0.7; // Slower for better clarity and more natural sound
-                utterance.pitch = 1.0; // Natural pitch
+                utterance.rate = 0.8; // Slightly faster for more energetic kid-like speech
+                utterance.pitch = 1.2; // Higher pitch for more kid-friendly sound
                 utterance.volume = 0.9; // High volume for clarity
                 
                 // Use the pre-selected high-quality voice
