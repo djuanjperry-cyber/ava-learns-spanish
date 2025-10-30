@@ -972,40 +972,111 @@
             
             console.log('Spanish voices found:', spanishVoices.map(v => `${v.name} (${v.lang})`));
             
-            // Sort by kid-friendly female voices first, then quality
+            // Sort by female voices first, then quality
             spanishVoices.sort((a, b) => {
-                // Prioritize female voices that sound more like kids
-                const aKidFriendly = (
+                // Prioritize female voices (comprehensive detection)
+                const aFemale = (
                     a.name.includes('Female') || 
                     a.name.includes('Woman') || 
                     a.name.includes('Mujer') ||
                     a.name.includes('Girl') ||
-                    a.name.includes('Child') ||
-                    a.name.includes('Young') ||
                     a.name.includes('Sofia') ||
                     a.name.includes('Isabella') ||
                     a.name.includes('Maria') ||
                     a.name.includes('Carmen') ||
                     a.name.includes('Ana') ||
-                    a.name.includes('Laura')
+                    a.name.includes('Laura') ||
+                    a.name.includes('Elena') ||
+                    a.name.includes('Rosa') ||
+                    a.name.includes('Sara') ||
+                    a.name.includes('Paula') ||
+                    a.name.includes('Lucia') ||
+                    a.name.includes('Marta') ||
+                    a.name.includes('Cristina') ||
+                    a.name.includes('Monica') ||
+                    a.name.includes('Patricia') ||
+                    a.name.includes('Beatriz') ||
+                    a.name.includes('Natalia') ||
+                    a.name.includes('Andrea') ||
+                    a.name.includes('Claudia') ||
+                    a.name.includes('Sandra') ||
+                    a.name.includes('Raquel') ||
+                    a.name.includes('Pilar') ||
+                    a.name.includes('Teresa') ||
+                    a.name.includes('Isabel') ||
+                    a.name.includes('Dolores') ||
+                    a.name.includes('Antonia') ||
+                    a.name.includes('Encarna') ||
+                    a.name.includes('Concha') ||
+                    a.name.includes('Pepa') ||
+                    a.name.includes('Lola') ||
+                    a.name.includes('Manuela') ||
+                    a.name.includes('Esperanza') ||
+                    a.name.includes('Remedios') ||
+                    a.name.includes('Dolores') ||
+                    a.name.includes('Pilar') ||
+                    a.name.includes('Teresa') ||
+                    a.name.includes('Isabel') ||
+                    a.name.includes('Dolores') ||
+                    a.name.includes('Antonia') ||
+                    a.name.includes('Encarna') ||
+                    a.name.includes('Concha') ||
+                    a.name.includes('Pepa') ||
+                    a.name.includes('Lola') ||
+                    a.name.includes('Manuela') ||
+                    a.name.includes('Esperanza') ||
+                    a.name.includes('Remedios') ||
+                    a.name.includes('Female') ||
+                    a.name.includes('Woman') ||
+                    a.name.includes('Mujer') ||
+                    a.name.includes('Girl')
                 ) ? 3 : 0;
                 
-                const bKidFriendly = (
+                const bFemale = (
                     b.name.includes('Female') || 
                     b.name.includes('Woman') || 
                     b.name.includes('Mujer') ||
                     b.name.includes('Girl') ||
-                    b.name.includes('Child') ||
-                    b.name.includes('Young') ||
                     b.name.includes('Sofia') ||
                     b.name.includes('Isabella') ||
                     b.name.includes('Maria') ||
                     b.name.includes('Carmen') ||
                     b.name.includes('Ana') ||
-                    b.name.includes('Laura')
+                    b.name.includes('Laura') ||
+                    b.name.includes('Elena') ||
+                    b.name.includes('Rosa') ||
+                    b.name.includes('Sara') ||
+                    b.name.includes('Paula') ||
+                    b.name.includes('Lucia') ||
+                    b.name.includes('Marta') ||
+                    b.name.includes('Cristina') ||
+                    b.name.includes('Monica') ||
+                    b.name.includes('Patricia') ||
+                    b.name.includes('Beatriz') ||
+                    b.name.includes('Natalia') ||
+                    b.name.includes('Andrea') ||
+                    b.name.includes('Claudia') ||
+                    b.name.includes('Sandra') ||
+                    b.name.includes('Raquel') ||
+                    b.name.includes('Pilar') ||
+                    b.name.includes('Teresa') ||
+                    b.name.includes('Isabel') ||
+                    b.name.includes('Dolores') ||
+                    b.name.includes('Antonia') ||
+                    b.name.includes('Encarna') ||
+                    b.name.includes('Concha') ||
+                    b.name.includes('Pepa') ||
+                    b.name.includes('Lola') ||
+                    b.name.includes('Manuela') ||
+                    b.name.includes('Esperanza') ||
+                    b.name.includes('Remedios') ||
+                    b.name.includes('Female') ||
+                    b.name.includes('Woman') ||
+                    b.name.includes('Mujer') ||
+                    b.name.includes('Girl')
                 ) ? 3 : 0;
                 
-                if (aKidFriendly !== bKidFriendly) return bKidFriendly - aKidFriendly;
+                if (aFemale !== bFemale) return bFemale - aFemale;
                 
                 // Then prioritize high-quality voices
                 const aQuality = (a.name.includes('Google') || a.name.includes('Microsoft') || a.name.includes('Enhanced') || a.name.includes('Neural')) ? 2 : 0;
@@ -1013,11 +1084,11 @@
                 
                 if (aQuality !== bQuality) return bQuality - aQuality;
                 
-                // Finally, any female voice
-                const aFemale = (a.name.includes('Female') || a.name.includes('Woman') || a.name.includes('Mujer')) ? 1 : 0;
-                const bFemale = (b.name.includes('Female') || b.name.includes('Woman') || b.name.includes('Mujer')) ? 1 : 0;
+                // Finally, any other female indicators
+                const aFemaleOther = (a.name.includes('Female') || a.name.includes('Woman') || a.name.includes('Mujer')) ? 1 : 0;
+                const bFemaleOther = (b.name.includes('Female') || b.name.includes('Woman') || b.name.includes('Mujer')) ? 1 : 0;
                 
-                return bFemale - aFemale;
+                return bFemaleOther - aFemaleOther;
             });
             
             // Select the best voice
@@ -1071,8 +1142,8 @@
                 
                 const utterance = new SpeechSynthesisUtterance(spanishWord);
                 utterance.lang = 'es-ES';
-                utterance.rate = 0.8; // Slightly faster for more energetic kid-like speech
-                utterance.pitch = 1.2; // Higher pitch for more kid-friendly sound
+                utterance.rate = 1.0; // Regular speaking pace
+                utterance.pitch = 1.0; // Natural pitch
                 utterance.volume = 0.9; // High volume for clarity
                 
                 // Use the pre-selected high-quality voice
