@@ -957,6 +957,9 @@
         function loadVoices() {
             availableVoices = speechSynthesis.getVoices();
             
+            // Debug: Log all available voices
+            console.log('All available voices:', availableVoices.map(v => `${v.name} (${v.lang})`));
+            
             // Filter and sort Spanish voices by quality, prioritizing female/kid-friendly voices
             const spanishVoices = availableVoices.filter(voice => 
                 voice.lang.startsWith('es') || 
@@ -966,6 +969,8 @@
                 voice.name.includes('Spain') ||
                 voice.name.includes('Latin')
             );
+            
+            console.log('Spanish voices found:', spanishVoices.map(v => `${v.name} (${v.lang})`));
             
             // Sort by kid-friendly female voices first, then quality
             spanishVoices.sort((a, b) => {
@@ -1018,7 +1023,7 @@
             // Select the best voice
             if (spanishVoices.length > 0) {
                 selectedVoice = spanishVoices[0];
-                console.log('Selected voice:', selectedVoice.name, 'Language:', selectedVoice.lang);
+                console.log('Selected Spanish voice:', selectedVoice.name, 'Language:', selectedVoice.lang);
                 
                 // Update voice indicator in UI
                 const voiceIndicator = document.getElementById('voiceIndicator');
@@ -1026,10 +1031,33 @@
                     voiceIndicator.innerHTML = `🎤 Using: <span class="voice-name">${selectedVoice.name}</span>`;
                 }
             } else {
-                console.log('No Spanish voices found, using default');
+                // Fallback: Try to find any female voice
+                const femaleVoices = availableVoices.filter(voice => 
+                    voice.name.includes('Female') || 
+                    voice.name.includes('Woman') || 
+                    voice.name.includes('Girl') ||
+                    voice.name.includes('Sofia') ||
+                    voice.name.includes('Isabella') ||
+                    voice.name.includes('Maria') ||
+                    voice.name.includes('Carmen') ||
+                    voice.name.includes('Ana') ||
+                    voice.name.includes('Laura')
+                );
+                
+                if (femaleVoices.length > 0) {
+                    selectedVoice = femaleVoices[0];
+                    console.log('Fallback to female voice:', selectedVoice.name, 'Language:', selectedVoice.lang);
+                } else {
+                    console.log('No Spanish or female voices found, using default');
+                }
+                
                 const voiceIndicator = document.getElementById('voiceIndicator');
                 if (voiceIndicator) {
-                    voiceIndicator.innerHTML = '🎤 Using: Default voice';
+                    if (selectedVoice) {
+                        voiceIndicator.innerHTML = `🎤 Using: <span class="voice-name">${selectedVoice.name}</span>`;
+                    } else {
+                        voiceIndicator.innerHTML = '🎤 Using: Default voice';
+                    }
                 }
             }
         }
