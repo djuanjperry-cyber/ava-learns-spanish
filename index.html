@@ -1059,8 +1059,22 @@
             
             console.log('Spanish voices found:', spanishVoices.map(v => `${v.name} (${v.lang})`));
             
-            // Sort by female voices first, then quality
+            // Sort by: local service → iOS/Google preferred names → female → quality
             spanishVoices.sort((a, b) => {
+                const iosPreferred = ['Monica', 'Mónica', 'Paulina', 'Sofia', 'Sofía'];
+
+                const aLocal = a.localService ? 1 : 0;
+                const bLocal = b.localService ? 1 : 0;
+                if (aLocal !== bLocal) return bLocal - aLocal;
+
+                const aIOS = iosPreferred.some(n => a.name.includes(n)) ? 1 : 0;
+                const bIOS = iosPreferred.some(n => b.name.includes(n)) ? 1 : 0;
+                if (aIOS !== bIOS) return bIOS - aIOS;
+
+                const aGoogle = (a.name.includes('Google') && a.lang.startsWith('es')) ? 1 : 0;
+                const bGoogle = (b.name.includes('Google') && b.lang.startsWith('es')) ? 1 : 0;
+                if (aGoogle !== bGoogle) return bGoogle - aGoogle;
+
                 // Prioritize female voices (comprehensive detection)
                 const aFemale = (
                     a.name.includes('Female') || 
@@ -1229,8 +1243,9 @@
                 
                 const utterance = new SpeechSynthesisUtterance(spanishWord);
                 utterance.lang = 'es-ES';
-                utterance.rate = 1.0; // Regular speaking pace
-                utterance.pitch = 1.0; // Natural pitch
+                const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+                utterance.rate = isMobile ? 1.05 : 1.0;
+                utterance.pitch = isMobile ? 1.05 : 1.0;
                 utterance.volume = 0.9; // High volume for clarity
                 
                 // Use the pre-selected high-quality voice
@@ -1247,11 +1262,12 @@
                     }
                 }
                 
-                // Enhance pronunciation with natural pauses
-                utterance.text = spanishWord
-                    .replace(/\?/g, '? ') // Add pause after question marks
-                    .replace(/\s+/g, ' ... ') // Add pauses between words
-                    .replace(/\.\.\.\s*\.\.\./g, ' ... '); // Clean up multiple pauses
+                // Mobile: avoid artificial pauses (they sound robotic). Desktop: light punctuation spacing only.
+                if (isMobile) {
+                    utterance.text = spanishWord;
+                } else {
+                    utterance.text = spanishWord.replace(/\?/g, '? ');
+                }
                 
                 // Add event listeners for better user experience
                 utterance.onstart = function() {
@@ -1266,7 +1282,8 @@
                     console.log('Speech error:', event.error);
                 };
                 
-                speechSynthesis.speak(utterance);
+                try { speechSynthesis.cancel(); } catch (e) {}
+                setTimeout(() => speechSynthesis.speak(utterance), 0);
                 playClickSound();
             } else {
                 alert('Speech synthesis not supported in this browser');
