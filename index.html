@@ -1244,9 +1244,9 @@
                 const utterance = new SpeechSynthesisUtterance(spanishWord);
                 utterance.lang = 'es-ES';
                 const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-                utterance.rate = isMobile ? 0.85 : 1.0; // slower on mobile
-                utterance.pitch = isMobile ? 1.0 : 1.0; // neutral pitch on mobile
-                utterance.volume = 0.9; // High volume for clarity
+                utterance.rate = isMobile ? 0.75 : 1.0; // slower on mobile for more natural pace
+                utterance.pitch = isMobile ? 0.98 : 1.0; // slightly lower pitch for less robotic sound
+                utterance.volume = 0.95; // High volume for clarity
                 
                 // Use the pre-selected high-quality voice
                 if (selectedVoice) {
@@ -1265,9 +1265,14 @@
                     }
                 }
                 
-                // Mobile: avoid artificial pauses (they sound robotic). Desktop: light punctuation spacing only.
+                // Mobile: add very subtle pauses only at natural breaks (commas, question marks) for flow
                 if (isMobile) {
-                    utterance.text = spanishWord;
+                    // Only add minimal pauses at punctuation, not between words
+                    utterance.text = spanishWord
+                        .replace(/¿/g, '¿ ')
+                        .replace(/\?/g, '? ')
+                        .replace(/,/g, ', ')
+                        .replace(/\s+/g, ' '); // normalize whitespace
                 } else {
                     utterance.text = spanishWord.replace(/\?/g, '? ');
                 }
