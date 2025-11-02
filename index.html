@@ -1059,21 +1059,40 @@
             
             console.log('Spanish voices found:', spanishVoices.map(v => `${v.name} (${v.lang})`));
             
-            // Sort by: local service → iOS/Google preferred names → female → quality
+            // Sort by: Quality indicators FIRST (Neural/Enhanced) → Google/Microsoft → iOS alternatives to Monica → female → local
             spanishVoices.sort((a, b) => {
-                const iosPreferred = ['Monica', 'Mónica', 'Paulina', 'Sofia', 'Sofía'];
+                // PRIORITY 1: Neural/Enhanced/Premium/WaveNet voices (highest quality, less robotic)
+                const aNeural = (a.name.includes('Neural') || a.name.includes('Enhanced') || 
+                                a.name.includes('Premium') || a.name.includes('WaveNet') ||
+                                a.name.includes('Wavenet')) ? 10 : 0;
+                const bNeural = (b.name.includes('Neural') || b.name.includes('Enhanced') || 
+                                b.name.includes('Premium') || b.name.includes('WaveNet') ||
+                                b.name.includes('Wavenet')) ? 10 : 0;
+                if (aNeural !== bNeural) return bNeural - aNeural;
+
+                // PRIORITY 2: Google/Microsoft quality voices
+                const aGoogle = (a.name.includes('Google') && a.lang.startsWith('es')) ? 5 : 0;
+                const bGoogle = (b.name.includes('Google') && b.lang.startsWith('es')) ? 5 : 0;
+                if (aGoogle !== bGoogle) return bGoogle - aGoogle;
+
+                const aMicrosoft = (a.name.includes('Microsoft') && a.lang.startsWith('es')) ? 4 : 0;
+                const bMicrosoft = (b.name.includes('Microsoft') && b.lang.startsWith('es')) ? 4 : 0;
+                if (aMicrosoft !== bMicrosoft) return bMicrosoft - aMicrosoft;
+
+                // PRIORITY 3: Try alternatives to Monica (Paulina, Sofia might sound better)
+                const iosAlternatives = ['Paulina', 'Paula', 'Sofia', 'Sofía', 'Isabella', 'Laura'];
+                const aAlt = iosAlternatives.some(n => a.name.includes(n)) ? 3 : 0;
+                const bAlt = iosAlternatives.some(n => b.name.includes(n)) ? 3 : 0;
+                if (aAlt !== bAlt) return bAlt - aAlt;
+
+                // Avoid Monica if others are available (it's often the default but can sound robotic)
+                const aMonica = a.name.includes('Monica') || a.name.includes('Mónica') ? -1 : 0;
+                const bMonica = b.name.includes('Monica') || b.name.includes('Mónica') ? -1 : 0;
+                if (aMonica !== bMonica) return bMonica - aMonica;
 
                 const aLocal = a.localService ? 1 : 0;
                 const bLocal = b.localService ? 1 : 0;
                 if (aLocal !== bLocal) return bLocal - aLocal;
-
-                const aIOS = iosPreferred.some(n => a.name.includes(n)) ? 1 : 0;
-                const bIOS = iosPreferred.some(n => b.name.includes(n)) ? 1 : 0;
-                if (aIOS !== bIOS) return bIOS - aIOS;
-
-                const aGoogle = (a.name.includes('Google') && a.lang.startsWith('es')) ? 1 : 0;
-                const bGoogle = (b.name.includes('Google') && b.lang.startsWith('es')) ? 1 : 0;
-                if (aGoogle !== bGoogle) return bGoogle - aGoogle;
 
                 // Prioritize female voices (comprehensive detection)
                 const aFemale = (
@@ -1179,11 +1198,10 @@
                 
                 if (aFemale !== bFemale) return bFemale - aFemale;
                 
-                // Then prioritize high-quality voices
-                const aQuality = (a.name.includes('Google') || a.name.includes('Microsoft') || a.name.includes('Enhanced') || a.name.includes('Neural')) ? 2 : 0;
-                const bQuality = (b.name.includes('Google') || b.name.includes('Microsoft') || b.name.includes('Enhanced') || b.name.includes('Neural')) ? 2 : 0;
-                
-                if (aQuality !== bQuality) return bQuality - aQuality;
+                // Prefer es-MX (Mexican Spanish) as it often has better quality voices
+                const aMexico = a.lang === 'es-MX' ? 1 : 0;
+                const bMexico = b.lang === 'es-MX' ? 1 : 0;
+                if (aMexico !== bMexico) return bMexico - aMexico;
                 
                 // Finally, any other female indicators
                 const aFemaleOther = (a.name.includes('Female') || a.name.includes('Woman') || a.name.includes('Mujer')) ? 1 : 0;
